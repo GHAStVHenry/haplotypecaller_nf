@@ -1,11 +1,12 @@
 nextflow.enable.dsl = 2
 
-params.sampleID
-params.fastqR1
-params.fastqR2
-params.ref
-params.fastaIn
-params.knownVariants
+params.sampleID = ""
+params.fastqR1 = ""
+params.fastqR2 = ""
+params.ref = ""
+params.fastaIn = ""
+params.knownVariants = ""
+params.dbsnp = ""
 
 workflow haplotypecaller_nf {
     main:
@@ -15,70 +16,9 @@ workflow haplotypecaller_nf {
         recal ( params.sampleID, markdup.out.bam_md, markdup.out.bai_md, fastaIndex.out.fasta, fastaIndex.out.fai, params.knownVariants.collect() )
         bamIndex( recal.out.bam_recal )
         haplotypecaller( params.sampleID, recal.out.bam_recal, bamIndex.out.bai_recal, fastaIndex.out.fasta, fastaIndex.out.fai, recal.out.dict )
+        genotype( params.sampleID, fastaIndex.out.fasta, fastaIndex.out.fai, recal.out.dict params.dbsnp, haplotypecaller.out.gvcf )
     emit:
         vcf = genotype.out.vcf
-
-    parameter_meta {
-        sampleID: {
-            label: "Sample ID"
-        }
-        fastqR1: {
-            label: "Read 1 fastq (gzipped)",
-            patterns: ["*.fastq.gz","*.fq.gz"],
-            stream: true
-        }
-        fastqR2: {
-            label: "Read 2 fastq (gzipped)",
-            patterns: ["*.fastq.gz","*.fq.gz"],
-            stream: true
-        }
-        ref: {
-            label: "Reference for bwa-mem (gzipped tarball)",
-            patterns: ["*.bwa-index.tar.gz"],
-            suggestions: [
-                {
-                    project: "project-BQpp3Y804Y0xbyG4GJPQ01xv",
-                    path: "/",
-                    region: "aws:us-east-1",
-                    name: "Reference Genome Files: AWS US (East)"
-                }
-            ],
-            stream: true
-
-        }
-        fastaIn: {
-            label: "Reference fasta",
-            patterns: ["*.fa.gz", "*.fasta.gz"],
-            suggestions: [
-                {
-                    name: "DNAnexus Reference Genomes: AWS US-east",
-                    project: "project-BQpp3Y804Y0xbyG4GJPQ01xv",
-                    path: "/"
-                }
-            ]
-        }
-        knownVariants: {
-            label: "Known variants (gzipped)",
-            patterns: ["*.vcf.gz"],
-            suggestions: [
-                {
-                    project: "project-B6JG85Z2J35vb6Z7pQ9Q02j8",
-                    path: "/gatk.resources.b37",
-                    name: "GRCh37/hs37d5/b37 (1000G Phase I/II) [tick one dbSNP and both indel files]: AWS US-east"
-                },
-                {
-                    project: "project-B6JG85Z2J35vb6Z7pQ9Q02j8",
-                    path: "/gatk.resources.hg19",
-                    name: "UCSC hg19 [tick one dbSNP and both indel files]: AWS US-east"
-                },
-                {
-                    project: "project-B6JG85Z2J35vb6Z7pQ9Q02j8",
-                    path: "/gatk.resources.GRCh38",
-                    name: "GRCh38/hg38 [tick one dbSNP and both indel files]: AWS US-east"
-                }
-            ]
-        }
-    }
 }
 
 process map {
