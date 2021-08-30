@@ -8,7 +8,15 @@ params.fastaIn = ""
 params.knownVariants = ""
 params.dbsnp = ""
 
-workflow haplotypecaller_nf {
+workflow {
+    take:
+        params.sampleID
+        params.fastqR1
+        params.fastqR2
+        params.ref
+        params.fastaIn
+        params.knownVariants
+        params.dbsnp
     main:
         map( params.sampleID, params.fastqR1, params.fastqR2, params.ref +
         markdup( params.sampleID, map.out.bam )
