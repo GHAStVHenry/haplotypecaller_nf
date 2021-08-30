@@ -8,6 +8,19 @@ params.fastaIn = ""
 params.knownVariants = ""
 params.dbsnp = ""
 
+workflow haplotypecaller_nf {
+    main:
+        map( params.sampleID, params.fastqR1, params.fastqR2, params.ref +
+        markdup( params.sampleID, map.out.bam )
+        fastaIndex( params.fastaIn )
+        recal( params.sampleID, markdup.out.bam_md, markdup.out.bai_md, fastaIndex.out.fasta, fastaIndex.out.fai, params.knownVariants.collect() )
+        bamIndex( recal.out.bam_recal )
+        haplotypecaller( params.sampleID, recal.out.bam_recal, bamIndex.out.bai_recal, fastaIndex.out.fasta, fastaIndex.out.fai, recal.out.dict )
+        genotype( params.sampleID, fastaIndex.out.fasta, fastaIndex.out.fai, recal.out.dict params.dbsnp, haplotypecaller.out.gvcf )
+    emit:
+        vcf = genotype.out.vcf
+}
+
 process map {
     input:
         val sampleID
@@ -219,17 +232,4 @@ process genotype {
     output:
         File "${sampleID}.vcf.gz", emit: vcf
         File "${sampleID}.vcf.gz.tbi", emit: tbi
-}
-
-workflow haplotypecaller_nf {
-    main:
-        map( params.sampleID, params.fastqR1, params.fastqR2, params.ref +
-        markdup( params.sampleID, map.out.bam )
-        fastaIndex( params.fastaIn )
-        recal ( params.sampleID, markdup.out.bam_md, markdup.out.bai_md, fastaIndex.out.fasta, fastaIndex.out.fai, params.knownVariants.collect() )
-        bamIndex( recal.out.bam_recal )
-        haplotypecaller( params.sampleID, recal.out.bam_recal, bamIndex.out.bai_recal, fastaIndex.out.fasta, fastaIndex.out.fai, recal.out.dict )
-        genotype( params.sampleID, fastaIndex.out.fasta, fastaIndex.out.fai, recal.out.dict params.dbsnp, haplotypecaller.out.gvcf )
-    emit:
-        vcf = genotype.out.vcf
 }
