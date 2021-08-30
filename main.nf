@@ -9,7 +9,6 @@ params.knownVariants = ""
 params.dbsnp = ""
 
 workflow haplotypecaller_nf {
-    main:
         map( params.sampleID, params.fastqR1, params.fastqR2, params.ref +
         markdup( params.sampleID, map.out.bam )
         fastaIndex( params.fastaIn )
@@ -17,8 +16,7 @@ workflow haplotypecaller_nf {
         bamIndex( recal.out.bam_recal )
         haplotypecaller( params.sampleID, recal.out.bam_recal, bamIndex.out.bai_recal, fastaIndex.out.fasta, fastaIndex.out.fai, recal.out.dict )
         genotype( params.sampleID, fastaIndex.out.fasta, fastaIndex.out.fai, recal.out.dict params.dbsnp, haplotypecaller.out.gvcf )
-    emit:
-        vcf = genotype.out.vcf
+
 }
 
 process map {
