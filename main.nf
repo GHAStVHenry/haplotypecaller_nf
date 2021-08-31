@@ -170,6 +170,7 @@ process haplotypecaller {
         path fasta
         path fai
         path dict
+        path dbsnp
     script:
         """
         cp ${fasta} ./
