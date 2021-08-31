@@ -83,7 +83,7 @@ process fastaIndex {
         path fastaIn
     script:
         """
-        cp ${fastaIn} ./
+        rsync ${fastaIn} ./
         fasta=`ls ./*.fa.gz`
         zcat \${fasta} > \${fasta%.gz}
         fasta="\${fasta%.gz}"
@@ -106,9 +106,9 @@ process recal {
         path knownVariants
     script:
         """
-        cp ${fasta} ./
+        rsync ${fasta} ./
         fasta=`ls ./*.fa`
-        cp ${fai} ./
+        rsync ${fai} ./
         fai=`ls ./*.fai`
         gatk --java-options -Xmx40g \
             CreateSequenceDictionary \
@@ -154,7 +154,7 @@ process bamIndex {
         path bam
     script:
         """
-        cp ${bam} ./
+        rsync ${bam} ./
         bam=`ls ./*.bam`
         samtools index \${bam}
         """
@@ -175,13 +175,13 @@ process haplotypecaller {
         path dbsnp
     script:
         """
-        cp ${fasta} ./
+        rsync ${fasta} ./
         fasta=`ls ./*.fa`
-        cp ${fai} ./
+        rsync ${fai} ./
         fai=`ls ./*.fai`
-        cp ${dict} ./
+        rsync ${dict} ./
         dict=`ls ./*.dict`
-        cp ${dbsnp} ./
+        rsync ${dbsnp} ./
         dbsnp=`ls ./*.vcf.gz`
         zcat "\${dbsnp}" > ./\${dbsnp%.gz}
         gatk --java-options -Xmx40g \
@@ -210,13 +210,13 @@ process genotype {
         path gvcf
     script:
         """
-        cp ${fasta} ./
+        rsync ${fasta} ./
         fasta=`ls ./*.fa`
-        cp ${fai} ./
+        rsync ${fai} ./
         fai=`ls ./*.fai`
-        cp ${dict} ./
+        rsync ${dict} ./
         dict=`ls ./*.dict`
-        cp ${dbsnp} ./
+        rsync ${dbsnp} ./
         dbsnp=`ls ./*.vcf.gz`
         zcat "\${dbsnp}" > ./\${dbsnp%.gz}
         gatk --java-options -Xmx40g \
