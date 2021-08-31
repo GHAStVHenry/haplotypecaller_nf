@@ -8,15 +8,22 @@ params.fastaIn = ""
 params.knownVariants = ""
 params.dbsnp = ""
 
-workflow haplotypecaller_nf {
-        map( params.sampleID, params.fastqR1, params.fastqR2, params.ref +
-        markdup( params.sampleID, map.out.bam )
-        fastaIndex( params.fastaIn )
-        recal( params.sampleID, markdup.out.bam_md, markdup.out.bai_md, fastaIndex.out.fasta, fastaIndex.out.fai, params.knownVariants.collect() )
-        bamIndex( recal.out.bam_recal )
-        haplotypecaller( params.sampleID, recal.out.bam_recal, bamIndex.out.bai_recal, fastaIndex.out.fasta, fastaIndex.out.fai, recal.out.dict )
-        genotype( params.sampleID, fastaIndex.out.fasta, fastaIndex.out.fai, recal.out.dict params.dbsnp, haplotypecaller.out.gvcf )
+sampleID = params.sampleID
+fastqR1 = Channel.fromPath(params.fastqR1)
+fastqR2 = Channel.fromPath(params.fastqR2)
+ref = Channel.fromPath(params.ref)
+fastaIn = Channel.fromPath(params.fastaIn)
+knownVariants = Channel.fromPath(params.knownVariants)
+dbsnp = Channel.fromPath(params.dbsnp)
 
+workflow {
+    map( sampleID, fastqR1, fastqR2, ref )
+    markdup( sampleID, map.out.bam )
+    fastaIndex( fastaIn )
+    recal( sampleID, markdup.out.bam_md, markdup.out.bai_md, fastaIndex.out.fasta, fastaIndex.out.fai, knownVariants.collect() )
+    bamIndex( recal.bam_recal )
+    haplotypecaller( sampleID, recal.out.bam_recal, bamIndex.out.bai_recal, fastaIndex.out.fasta, fastaIndex.out.fai, recal.out.dict, dbsnp )
+    genotype( sampleID, fastaIndex.out.fasta, fastaIndex.out.fai, recal.out.dict, dbsnp, haplotypecaller.out.gvcf )
 }
 
 process map {
@@ -34,16 +41,15 @@ process map {
         bwa mem -K 100000000 -t 16 -M \
             \${genome_file} \
             ${fastqR1} ${fastqR2} \
-            -R "@RG\tID:None\tPL:None\tPU:None\tLB:None\tSM:${sampleID}" | \
+            -R "@RG\\tID:None\\tPL:None\\tPU:None\\tLB:None\\tSM:${sampleID}" | \
             samtools sort --threads 16 -m 2G - > ${sampleID}.bam
         samtools index ${sampleID}.bam
         """
     machineType "mem1_ssd1_x32"
     container "quay.io/biocontainers/bwakit:0.7.17.dev1--hdfd78af_1"
     output:
-        path "~{sampleID}.bam", emit: bam
-        path "~{sampleID}.bam.bai", emit: bai
-    }
+        path "${sampleID}.bam", emit: bam
+        path "${sampleID}.bam.bai", emit: bai
 }
 
 process markdup {
@@ -64,11 +70,10 @@ process markdup {
         """
     machineType "mem3_ssd1_v2_x8"
     container "quay.io/biocontainers/gatk4:4.2.0.0--0"
-    output {
+    output:
         path "${sampleID}.md.bam", emit: bam_md
         path "${sampleID}.md.bam.bai", emit: bai_md
         path "${sampleID}.md.bam.metrics", emit: metrics_md
-    }
 }
 
 process fastaIndex {
@@ -84,10 +89,9 @@ process fastaIndex {
         """
     machineType "mem1_ssd1_x2"
     container "quay.io/biocontainers/mulled-v2-0560a8046fc82aa4338588eca29ff18edab2c5aa:c17ce694dd57ab0ac1a2b86bb214e65fedef760e-0"
-    output {
+    output:
         path "*.bam", emit: fasta
         path "*.fai", emit: fai
-    }
 }
 
 process recal {
@@ -98,7 +102,6 @@ process recal {
         path fasta
         path fai
         path knownVariants
-    }
     script:
         """
         cp ${fasta} ./
