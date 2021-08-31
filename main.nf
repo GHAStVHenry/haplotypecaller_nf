@@ -36,9 +36,9 @@ process map {
         path ref
     script:
         """
-        mkdir genome
+        mkdir -p genome
         zcat "${ref}" | tar xvf - -C genome
-        genome_file=`ls genome/*.bwt`
+        genome_file=`ls ./genome/*.bwt`
         genome_file="\${genome_file%.bwt}"
         bwa mem -K 100000000 -t 16 -M \
             \${genome_file} \
@@ -83,8 +83,9 @@ process fastaIndex {
         path fastaIn
     script:
         """
-        rsync ${fastaIn} ./
-        fasta=`ls ./*.fa.gz`
+        mkdir -p fasta
+        cp ${fastaIn} ./fasta/
+        fasta=`ls ./fasta/*.fa.gz`
         zcat \${fasta} > \${fasta%.gz}
         fasta="\${fasta%.gz}"
         samtools faidx \${fasta}
@@ -106,10 +107,11 @@ process recal {
         path knownVariants
     script:
         """
-        rsync ${fasta} ./
-        fasta=`ls ./*.fa`
-        rsync ${fai} ./
-        fai=`ls ./*.fai`
+        mkdir -p fasta
+        cp ${fasta} ./fasta/
+        fasta=`ls ./fasta/*.fa`
+        cp ${fai} ./fasta/
+        fai=`ls ./fasta/*.fai`
         gatk --java-options -Xmx40g \
             CreateSequenceDictionary \
                 -R "\${fasta}" \
@@ -154,8 +156,9 @@ process bamIndex {
         path bam
     script:
         """
-        rsync ${bam} ./
-        bam=`ls ./*.bam`
+        mkdir -[ na,]
+        cp ${bam} ./bam/
+        bam=`ls ./bam/*.bam`
         samtools index \${bam}
         """
     output:
@@ -175,14 +178,15 @@ process haplotypecaller {
         path dbsnp
     script:
         """
-        rsync ${fasta} ./
-        fasta=`ls ./*.fa`
-        rsync ${fai} ./
-        fai=`ls ./*.fai`
-        rsync ${dict} ./
-        dict=`ls ./*.dict`
-        rsync ${dbsnp} ./
-        dbsnp=`ls ./*.vcf.gz`
+        mkdir -p fasta
+        cp ${fasta} ./fasta/
+        fasta=`ls ./fasta/*.fa`
+        cp ${fai} ./fasta/
+        fai=`ls ./fasta/*.fai`
+        cp ${dict} ./fasta/
+        dict=`ls ./fasta/*.dict`
+        cp ${dbsnp} ./fasta/
+        dbsnp=`ls ./fasta/*.vcf.gz`
         zcat "\${dbsnp}" > ./\${dbsnp%.gz}
         gatk --java-options -Xmx40g \
             IndexFeatureFile \
@@ -210,22 +214,25 @@ process genotype {
         path gvcf
     script:
         """
-        rsync ${fasta} ./
-        fasta=`ls ./*.fa`
-        rsync ${fai} ./
-        fai=`ls ./*.fai`
-        rsync ${dict} ./
-        dict=`ls ./*.dict`
-        rsync ${dbsnp} ./
-        dbsnp=`ls ./*.vcf.gz`
-        zcat "\${dbsnp}" > ./\${dbsnp%.gz}
+        mkdir -p fasta
+        cp ${fasta} ./fasta/
+        fasta=`ls ./fasta/*.fa`
+        cp ${fai} ./fasta/
+        fai=`ls ./fasta/*.fai`
+        cp ${dict} ./fasta/
+        dict=`ls ./fasta/*.dict`
+        mkdir -p dbsnp
+        cp ${dbsnp} ./dbsnp/
+        dbsnp=`ls ./dbsnp/*.vcf.gz`
+        zcat "\${dbsnp}" > ./dbsnp/\${dbsnp%.gz}
+        dbsnp=\${dbsnp%.gz}
         gatk --java-options -Xmx40g \
             IndexFeatureFile \
-            -I \${dbsnp%.gz}
+            -I \${dbsnp}
         gatk --java-options -Xmx40g \
             GenotypeGVCFs \
                 -R "\${fasta}" \
-                --dbsnp "\${dbsnp%.gz}" \
+                --dbsnp "\${dbsnp}" \
                 -V "${gvcf}" \
                 -new-qual -G StandardAnnotation \
                 -O ${sampleID}.vcf.gz \
