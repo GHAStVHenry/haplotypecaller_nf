@@ -200,12 +200,12 @@ process haplotypecaller {
 
 process genotype {
     input:
-        String sampleID
-        File fasta
-        File fai
-        File dict
-        File dbsnp
-        File gvcf
+        val sampleID
+        path fasta
+        path fai
+        path dict
+        path dbsnp
+        path gvcf
     script:
         """
         cp ${fasta} ./
@@ -232,6 +232,6 @@ process genotype {
     machineType "mem3_ssd1_v2_x8"
     container "quay.io/biocontainers/gatk4:4.2.0.0--0"
     output:
-        File "${sampleID}.vcf.gz", emit: vcf
-        File "${sampleID}.vcf.gz.tbi", emit: tbi
+        path "${sampleID}.vcf.gz", emit: vcf
+        path "${sampleID}.vcf.gz.tbi", emit: tbi
 }
