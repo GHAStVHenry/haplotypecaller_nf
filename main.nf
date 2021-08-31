@@ -45,7 +45,7 @@ process map {
             samtools sort --threads 16 -m 2G - > ${sampleID}.bam
         samtools index ${sampleID}.bam
         """
-    machineType "mem1_ssd1_v2_x32"
+    machineType "mem2_ssd1_v2_x32"
     container "quay.io/biocontainers/bwakit:0.7.17.dev1--hdfd78af_1"
     output:
         path "${sampleID}.bam", emit: bam
