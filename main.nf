@@ -27,6 +27,8 @@ workflow {
 }
 
 process map {
+    machineType 'mem2_ssd1_v2_x32'
+    container 'quay.io/biocontainers/bwakit:0.7.17.dev1--hdfd78af_1'
     input:
         val sampleID
         path fastqR1
@@ -45,8 +47,6 @@ process map {
             samtools sort --threads 16 -m 2G - > ${sampleID}.bam
         samtools index ${sampleID}.bam
         """
-    machineType 'mem2_ssd1_v2_x32'
-    container 'quay.io/biocontainers/bwakit:0.7.17.dev1--hdfd78af_1'
     output:
         path '${sampleID}.bam', emit: bam
         path '${sampleID}.bam.bai', emit: bai
