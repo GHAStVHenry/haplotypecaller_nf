@@ -27,8 +27,8 @@ workflow {
 }
 
 process map {
-    machineType 'mem2_ssd1_v2_x32'
-    container 'quay.io/biocontainers/bwakit:0.7.17.dev1--hdfd78af_1'
+    machineType "mem2_ssd1_v2_x32"
+    container "quay.io/biocontainers/bwakit:0.7.17.dev1--hdfd78af_1"
     input:
         val sampleID
         path fastqR1
@@ -48,11 +48,13 @@ process map {
         samtools index ${sampleID}.bam
         """
     output:
-        path '${sampleID}.bam', emit: bam
-        path '${sampleID}.bam.bai', emit: bai
+        path "${sampleID}.bam", emit: bam
+        path "${sampleID}.bam.bai", emit: bai
 }
 
 process markdup {
+    machineType "mem3_ssd1_v2_x8"
+    container "quay.io/biocontainers/gatk4:4.2.0.0--0"
     input:
         val sampleID
         path bam
@@ -68,15 +70,15 @@ process markdup {
                 --OUTPUT ${sampleID}.md.bam
         mv ${sampleID}.md.bai ${sampleID}.md.bam.bai
         """
-    machineType 'mem3_ssd1_v2_x8'
-    container 'quay.io/biocontainers/gatk4:4.2.0.0--0'
     output:
-        path '${sampleID}.md.bam', emit: bam_md
-        path '${sampleID}.md.bam.bai', emit: bai_md
-        path '${sampleID}.md.bam.metrics', emit: metrics_md
+        path "${sampleID}.md.bam", emit: bam_md
+        path "${sampleID}.md.bam.bai", emit: bai_md
+        path "${sampleID}.md.bam.metrics", emit: metrics_md
 }
 
 process fastaIndex {
+    machineType "mem1_ssd1_v2_x2"
+    container "quay.io/biocontainers/mulled-v2-0560a8046fc82aa4338588eca29ff18edab2c5aa:c17ce694dd57ab0ac1a2b86bb214e65fedef760e-0"
     input:
         path fastaIn
     script:
@@ -87,14 +89,14 @@ process fastaIndex {
         fasta="\${fasta%.gz}"
         samtools faidx \${fasta}
         """
-    machineType 'mem1_ssd1_v2_x2'
-    container 'quay.io/biocontainers/mulled-v2-0560a8046fc82aa4338588eca29ff18edab2c5aa:c17ce694dd57ab0ac1a2b86bb214e65fedef760e-0'
     output:
-        path '*.bam', emit: fasta
-        path '*.fai', emit: fai
+        path "*.bam", emit: fasta
+        path "*.fai", emit: fai
 }
 
 process recal {
+    machineType "mem3_ssd1_v2_x8"
+    container "quay.io/biocontainers/gatk4:4.2.0.0--0"
     input:
         val sampleID
         path bam
@@ -114,7 +116,7 @@ process recal {
                 -O ./"\${fasta%.fa}.dict"
         ls
         known=""
-        for knownVariant in `echo ${knownVariants} | tr ',' '\n'`; do
+        for knownVariant in `echo ${knownVariants} | tr "," "\n"`; do
             knownVariantBase=`basename "\${knownVariant}"`
             zcat "\${knownVariant}" > ./\${knownVariantBase%.gz}
             gatk --java-options -Xmx40g \
@@ -140,14 +142,14 @@ process recal {
                 --static-quantized-quals 10 --static-quantized-quals 20 --static-quantized-quals 30 --add-output-sam-program-record --use-original-qualities \
                 --bqsr-recal-file ${sampleID}.recal.table
         """
-    machineType 'mem3_ssd1_v2_x8'
-    container 'quay.io/biocontainers/gatk4:4.2.0.0--0'
     output:
-        path '*.recal.bam', emit: bam_recal
-        path '*.dict', emit: dict
+        path "*.recal.bam", emit: bam_recal
+        path "*.dict", emit: dict
 }
 
 process bamIndex {
+    machineType "mem1_ssd1_v2_x2"
+    container "quay.io/biocontainers/mulled-v2-0560a8046fc82aa4338588eca29ff18edab2c5aa:c17ce694dd57ab0ac1a2b86bb214e65fedef760e-0"
     input:
         path bam
     script:
@@ -156,13 +158,13 @@ process bamIndex {
         bam=`ls ./*.bam`
         samtools index \${bam}
         """
-    machineType 'mem1_ssd1_v2_x2'
-    container 'quay.io/biocontainers/mulled-v2-0560a8046fc82aa4338588eca29ff18edab2c5aa:c17ce694dd57ab0ac1a2b86bb214e65fedef760e-0'
     output:
-        path '*.bai', emit: bai_recal
+        path "*.bai", emit: bai_recal
 }
 
 process haplotypecaller {
+    machineType "mem3_ssd1_v2_x8"
+    container "quay.io/biocontainers/gatk4:4.2.0.0--0"
     input:
         val sampleID
         path bam
@@ -192,13 +194,13 @@ process haplotypecaller {
                 -O ${sampleID}.g.vcf \
                 -ERC GVCF
         """
-    machineType 'mem3_ssd1_v2_x8'
-    container 'quay.io/biocontainers/gatk4:4.2.0.0--0'
     output:
-        path '${sampleID}.g.vcf', emit: gvcf
+        path "${sampleID}.g.vcf", emit: gvcf
 }
 
 process genotype {
+    machineType "mem3_ssd1_v2_x8"
+    container "quay.io/biocontainers/gatk4:4.2.0.0--0"
     input:
         val sampleID
         path fasta
@@ -229,9 +231,7 @@ process genotype {
                 -O ${sampleID}.vcf.gz \
                 -isr INTERSECTION
         """
-    machineType 'mem3_ssd1_v2_x8'
-    container 'quay.io/biocontainers/gatk4:4.2.0.0--0'
     output:
-        path '${sampleID}.vcf.gz', emit: vcf
-        path '${sampleID}.vcf.gz.tbi', emit: tbi
+        path "${sampleID}.vcf.gz", emit: vcf
+        path "${sampleID}.vcf.gz.tbi", emit: tbi
 }
