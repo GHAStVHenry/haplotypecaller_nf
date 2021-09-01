@@ -94,7 +94,7 @@ process fastaIndex {
         ls
         """
     output:
-        path "*.bam", emit: fasta
+        path "*.fa", emit: fasta
         path "*.fai", emit: fai
 }
 
