@@ -70,6 +70,7 @@ process markdup {
                 --CREATE_INDEX true \
                 --OUTPUT ${sampleID}.md.bam
         mv ${sampleID}.md.bai ${sampleID}.md.bam.bai
+        ls
         """
     output:
         path "${sampleID}.md.bam", emit: bam_md
@@ -90,6 +91,7 @@ process fastaIndex {
         zcat \${fasta} > \${fasta%.gz}
         fasta="\${fasta%.gz}"
         samtools faidx \${fasta}
+        ls
         """
     output:
         path "*.bam", emit: fasta
