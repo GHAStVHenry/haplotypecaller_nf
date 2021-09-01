@@ -34,6 +34,9 @@ process mapping {
         path fastqR1
         path fastqR2
         path ref
+    output:
+        path "${sampleID}.bam", emit: bam
+        path "${sampleID}.bam.bai", emit: bai
     script:
         """
         mkdir -p genome
@@ -48,9 +51,6 @@ process mapping {
         samtools index ${sampleID}.bam
         ls
         """
-    output:
-        path "${sampleID}.bam", emit: bam
-        path "${sampleID}.bam.bai", emit: bai
 }
 
 process markdup {
