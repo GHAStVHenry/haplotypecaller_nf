@@ -20,7 +20,7 @@ workflow {
     map( sampleID, fastqR1, fastqR2, ref )
     markdup( sampleID, map.out.bam )
     fastaIndex( fastaIn )
-    recal( sampleID, markdup.out.bam_md, markdup.out.bai_md, fastaIndex.out.fasta, fastaIndex.out.fai, knownVariants.collect() )
+    recal( sampleID, markdup.out.bam_md, markdup.out.bai_md, fastaIndex.out.fasta, fastaIndex.out.fai, knownVariants )
     bamIndex( recal.out.bam_recal )
     haplotypecaller( sampleID, recal.out.bam_recal, bamIndex.out.bai_recal, fastaIndex.out.fasta, fastaIndex.out.fai, recal.out.dict, dbsnp )
     genotype( sampleID, fastaIndex.out.fasta, fastaIndex.out.fai, recal.out.dict, dbsnp, haplotypecaller.out.gvcf )
