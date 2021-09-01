@@ -59,6 +59,9 @@ process markdup {
     input:
         val sampleID
         path bam
+    output:
+        path "./${sampleID}.md.bam", emit: bam_md
+        path "./${sampleID}.md.bam.bai", emit: bai_md
     script:
         """
         gatk --java-options "-Xmx40g -Xms6000m" \
@@ -72,9 +75,6 @@ process markdup {
         mv ${sampleID}.md.bai ${sampleID}.md.bam.bai
         ls
         """
-    output:
-        path "./${sampleID}.md.bam", emit: bam_md
-        path "./${sampleID}.md.bam.bai", emit: bai_md
 }
 
 process fastaIndex {
@@ -82,6 +82,9 @@ process fastaIndex {
     container "quay.io/biocontainers/mulled-v2-0560a8046fc82aa4338588eca29ff18edab2c5aa:c17ce694dd57ab0ac1a2b86bb214e65fedef760e-0"
     input:
         path fastaIn
+    output:
+        path "fasta/*.fa", emit: fasta
+        path "fasta/*.fai", emit: fai
     script:
         """
         mkdir -p fasta
@@ -93,9 +96,6 @@ process fastaIndex {
         ls
         ls ./fasta/
         """
-    output:
-        path "./fasta/*.fa", emit: fasta
-        path "./fasta/*.fai", emit: fai
 }
 
 process recal {
@@ -108,6 +108,9 @@ process recal {
         path fasta
         path fai
         path knownVariants
+    output:
+        path "*.recal.bam", emit: bam_recal
+        path "*.dict", emit: dict
     script:
         """
         mkdir -p fasta
@@ -148,9 +151,6 @@ process recal {
                 --bqsr-recal-file ${sampleID}.recal.table
         ls
         """
-    output:
-        path "*.recal.bam", emit: bam_recal
-        path "*.dict", emit: dict
 }
 
 process bamIndex {
@@ -158,6 +158,8 @@ process bamIndex {
     container "quay.io/biocontainers/mulled-v2-0560a8046fc82aa4338588eca29ff18edab2c5aa:c17ce694dd57ab0ac1a2b86bb214e65fedef760e-0"
     input:
         path bam
+    output:
+        path "*.bai", emit: bai_recal
     script:
         """
         mkdir -[ na,]
@@ -166,8 +168,6 @@ process bamIndex {
         samtools index \${bam}
         ls
         """
-    output:
-        path "*.bai", emit: bai_recal
 }
 
 process haplotypecaller {
@@ -181,6 +181,8 @@ process haplotypecaller {
         path fai
         path dict
         path dbsnp
+    output:
+        path "${sampleID}.g.vcf", emit: gvcf
     script:
         """
         mkdir -p fasta
@@ -205,8 +207,6 @@ process haplotypecaller {
                 -ERC GVCF
         ls
         """
-    output:
-        path "${sampleID}.g.vcf", emit: gvcf
 }
 
 process genotype {
@@ -219,6 +219,9 @@ process genotype {
         path dict
         path dbsnp
         path gvcf
+    output:
+        path "${sampleID}.vcf.gz", emit: vcf
+        path "${sampleID}.vcf.gz.tbi", emit: tbi
     script:
         """
         mkdir -p fasta
@@ -246,7 +249,4 @@ process genotype {
                 -isr INTERSECTION
         ls
         """
-    output:
-        path "${sampleID}.vcf.gz", emit: vcf
-        path "${sampleID}.vcf.gz.tbi", emit: tbi
 }
