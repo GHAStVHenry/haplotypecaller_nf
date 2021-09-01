@@ -49,7 +49,6 @@ process mapping {
             -R "@RG\\tID:None\\tPL:None\\tPU:None\\tLB:None\\tSM:${sampleID}" | \
             samtools sort --threads 16 -m 2G - > ${sampleID}.bam
         samtools index ${sampleID}.bam
-        ls
         """
 }
 
@@ -73,7 +72,6 @@ process markdup {
                 --CREATE_INDEX true \
                 --OUTPUT ${sampleID}.md.bam
         mv ${sampleID}.md.bai ${sampleID}.md.bam.bai
-        ls
         """
 }
 
@@ -93,8 +91,6 @@ process fastaIndex {
         zcat \${fasta} > \${fasta%.gz}
         fasta="\${fasta%.gz}"
         samtools faidx \${fasta}
-        ls
-        ls ./fasta/
         """
 }
 
@@ -163,7 +159,6 @@ process bamIndex {
         cp ${bam} ./bam/
         bam=`ls ./bam/*.bam`
         samtools index \${bam}
-        ls
         """
 }
 
@@ -202,7 +197,6 @@ process haplotypecaller {
                 -I ${bam} \
                 -O ${sampleID}.g.vcf \
                 -ERC GVCF
-        ls
         """
 }
 
@@ -244,6 +238,5 @@ process genotype {
                 -new-qual -G StandardAnnotation \
                 -O ${sampleID}.vcf.gz \
                 -isr INTERSECTION
-        ls
         """
 }
