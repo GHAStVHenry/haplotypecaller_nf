@@ -110,7 +110,7 @@ process recal {
         path knownVariants
     output:
         path "*.recal.bam", emit: bam_recal
-        path "*.dict", emit: dict
+        path "fasta/*.dict", emit: dict
     script:
         """
         mkdir -p fasta
@@ -121,7 +121,7 @@ process recal {
         gatk --java-options -Xmx40g \
             CreateSequenceDictionary \
                 -R "\${fasta}" \
-                -O ./"\${fasta%.fa}.dict"
+                -O "\${fasta%.fa}.dict"
         ls
         known=""
         for knownVariant in `echo ${knownVariants} | tr "," "\n"`; do
@@ -132,7 +132,6 @@ process recal {
                 -I \${knownVariantBase%.gz}
             known="\${known} --known-sites ./\${knownVariantBase%.gz}"
         done
-        ls
         gatk --java-options -Xmx40g \
             BaseRecalibrator \
                 \${known} \
@@ -150,6 +149,7 @@ process recal {
                 --static-quantized-quals 10 --static-quantized-quals 20 --static-quantized-quals 30 --add-output-sam-program-record --use-original-qualities \
                 --bqsr-recal-file ${sampleID}.recal.table
         ls
+        ls ./fasta/
         """
 }
 
