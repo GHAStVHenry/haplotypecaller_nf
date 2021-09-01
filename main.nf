@@ -91,10 +91,11 @@ process fastaIndex {
         fasta="\${fasta%.gz}"
         samtools faidx \${fasta}
         ls
+        ls ./fasta/
         """
     output:
         path "./fasta/*.fa", emit: fasta
-        path "./*.fai", emit: fai
+        path "./fasta/*.fai", emit: fai
 }
 
 process recal {
