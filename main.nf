@@ -17,8 +17,8 @@ knownVariants = Channel.fromPath(params.knownVariants)
 dbsnp = Channel.fromPath(params.dbsnp)
 
 workflow {
-    map( sampleID, fastqR1, fastqR2, ref )
-    markdup( sampleID, map.out.bam )
+    mapping( sampleID, fastqR1, fastqR2, ref )
+    markdup( sampleID, mapping.out.bam )
     fastaIndex( fastaIn )
     recal( sampleID, markdup.out.bam_md, markdup.out.bai_md, fastaIndex.out.fasta, fastaIndex.out.fai, knownVariants )
     bamIndex( recal.out.bam_recal )
@@ -26,7 +26,7 @@ workflow {
     genotype( sampleID, fastaIndex.out.fasta, fastaIndex.out.fai, recal.out.dict, dbsnp, haplotypecaller.out.gvcf )
 }
 
-process map {
+process mapping {
     machineType "mem2_ssd1_v2_x32"
     container "quay.io/biocontainers/bwakit:0.7.17.dev1--hdfd78af_1"
     input:
@@ -185,8 +185,9 @@ process haplotypecaller {
         fai=`ls ./fasta/*.fai`
         cp ${dict} ./fasta/
         dict=`ls ./fasta/*.dict`
-        cp ${dbsnp} ./fasta/
-        dbsnp=`ls ./fasta/*.vcf.gz`
+        mkdir -p dbsnp
+        cp ${dbsnp} ./dbsnp/
+        dbsnp=`ls ./dbsnp/*.vcf.gz`
         zcat "\${dbsnp}" > ./\${dbsnp%.gz}
         gatk --java-options -Xmx40g \
             IndexFeatureFile \
