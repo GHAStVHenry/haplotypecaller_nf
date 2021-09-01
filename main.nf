@@ -225,7 +225,7 @@ process genotype {
         mkdir -p dbsnp
         cp ${dbsnp} ./dbsnp/
         dbsnp=`ls ./dbsnp/*.vcf.gz`
-        zcat "\${dbsnp}" > ./dbsnp/\${dbsnp%.gz}
+        zcat "\${dbsnp}" > ./\${dbsnp%.gz}
         dbsnp=\${dbsnp%.gz}
         gatk --java-options -Xmx40g \
             IndexFeatureFile \
