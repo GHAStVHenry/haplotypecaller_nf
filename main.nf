@@ -156,7 +156,7 @@ process bamIndex {
     input:
         path bam
     output:
-        path "fasta/*.bai", emit: bai_recal
+        path "bam/*.bai", emit: bai_recal
     script:
         """
         mkdir -p bam
