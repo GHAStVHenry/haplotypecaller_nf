@@ -46,6 +46,7 @@ process mapping {
             -R "@RG\\tID:None\\tPL:None\\tPU:None\\tLB:None\\tSM:${sampleID}" | \
             samtools sort --threads 16 -m 2G - > ${sampleID}.bam
         samtools index ${sampleID}.bam
+        ls
         """
     output:
         path "${sampleID}.bam", emit: bam
