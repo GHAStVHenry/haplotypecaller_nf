@@ -122,7 +122,6 @@ process recal {
             CreateSequenceDictionary \
                 -R "\${fasta}" \
                 -O "\${fasta%.fa}.dict"
-        ls
         known=""
         for knownVariant in `echo ${knownVariants} | tr "," "\n"`; do
             knownVariantBase=`basename "\${knownVariant}"`
@@ -148,8 +147,6 @@ process recal {
                 --output ${sampleID}.recal.bam \
                 --static-quantized-quals 10 --static-quantized-quals 20 --static-quantized-quals 30 --add-output-sam-program-record --use-original-qualities \
                 --bqsr-recal-file ${sampleID}.recal.table
-        ls
-        ls ./fasta/
         """
 }
 
@@ -159,10 +156,10 @@ process bamIndex {
     input:
         path bam
     output:
-        path "*.bai", emit: bai_recal
+        path "fasta/*.bai", emit: bai_recal
     script:
         """
-        mkdir -[ na,]
+        mkdir -p bam
         cp ${bam} ./bam/
         bam=`ls ./bam/*.bam`
         samtools index \${bam}
