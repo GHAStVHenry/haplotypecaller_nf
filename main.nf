@@ -73,9 +73,8 @@ process markdup {
         ls
         """
     output:
-        path "${sampleID}.md.bam", emit: bam_md
-        path "${sampleID}.md.bam.bai", emit: bai_md
-        path "${sampleID}.md.bam.metrics", emit: metrics_md
+        path "./${sampleID}.md.bam", emit: bam_md
+        path "./${sampleID}.md.bam.bai", emit: bai_md
 }
 
 process fastaIndex {
@@ -94,8 +93,8 @@ process fastaIndex {
         ls
         """
     output:
-        path "*.fa", emit: fasta
-        path "*.fai", emit: fai
+        path "./fasta/*.fa", emit: fasta
+        path "./*.fai", emit: fai
 }
 
 process recal {
@@ -146,6 +145,7 @@ process recal {
                 --output ${sampleID}.recal.bam \
                 --static-quantized-quals 10 --static-quantized-quals 20 --static-quantized-quals 30 --add-output-sam-program-record --use-original-qualities \
                 --bqsr-recal-file ${sampleID}.recal.table
+        ls
         """
     output:
         path "*.recal.bam", emit: bam_recal
@@ -163,6 +163,7 @@ process bamIndex {
         cp ${bam} ./bam/
         bam=`ls ./bam/*.bam`
         samtools index \${bam}
+        ls
         """
     output:
         path "*.bai", emit: bai_recal
@@ -201,6 +202,7 @@ process haplotypecaller {
                 -I ${bam} \
                 -O ${sampleID}.g.vcf \
                 -ERC GVCF
+        ls
         """
     output:
         path "${sampleID}.g.vcf", emit: gvcf
@@ -241,6 +243,7 @@ process genotype {
                 -new-qual -G StandardAnnotation \
                 -O ${sampleID}.vcf.gz \
                 -isr INTERSECTION
+        ls
         """
     output:
         path "${sampleID}.vcf.gz", emit: vcf
