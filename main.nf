@@ -34,6 +34,7 @@ workflow {
 process mapping {
     machineType "mem2_ssd1_v2_x32"
     container "quay.io/biocontainers/bwakit:0.7.17.dev1--hdfd78af_1"
+    publishDir "${params.outDir}"
     input:
         val sampleID
         path fastqR1
@@ -60,6 +61,7 @@ process mapping {
 process markdup {
     machineType "mem3_ssd1_v2_x8"
     container "quay.io/biocontainers/gatk4:4.2.0.0--0"
+    publishDir "${params.outDir}"
     input:
         val sampleID
         path bam
@@ -83,6 +85,7 @@ process markdup {
 process fastaIndex {
     machineType "mem1_ssd1_v2_x2"
     container "quay.io/biocontainers/mulled-v2-0560a8046fc82aa4338588eca29ff18edab2c5aa:c17ce694dd57ab0ac1a2b86bb214e65fedef760e-0"
+    publishDir "${params.outDir}"
     input:
         path fastaIn
     output:
@@ -102,6 +105,7 @@ process fastaIndex {
 process recal {
     machineType "mem3_ssd1_v2_x8"
     container "quay.io/biocontainers/gatk4:4.2.0.0--0"
+    publishDir "${params.outDir}"
     input:
         val sampleID
         path bam
@@ -154,6 +158,7 @@ process recal {
 process bamIndex {
     machineType "mem1_ssd1_v2_x2"
     container "quay.io/biocontainers/mulled-v2-0560a8046fc82aa4338588eca29ff18edab2c5aa:c17ce694dd57ab0ac1a2b86bb214e65fedef760e-0"
+    publishDir "${params.outDir}"
     input:
         path bam
     output:
@@ -170,6 +175,7 @@ process bamIndex {
 process haplotypecaller {
     machineType "mem3_ssd1_v2_x8"
     container "quay.io/biocontainers/gatk4:4.2.0.0--0"
+    publishDir "${params.outDir}"
     input:
         val sampleID
         path bam
