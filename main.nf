@@ -7,6 +7,7 @@ params.ref = ""
 params.fastaIn = ""
 params.knownVariants = ""
 params.dbsnp = ""
+params.outDir = ""
 
 sampleID = params.sampleID
 fastqR1 = Channel.fromPath(params.fastqR1)
@@ -17,13 +18,17 @@ knownVariants = Channel.fromPath(params.knownVariants)
 dbsnp = Channel.fromPath(params.dbsnp)
 
 workflow {
-    mapping( sampleID, fastqR1, fastqR2, ref )
-    markdup( sampleID, mapping.out.bam )
-    fastaIndex( fastaIn )
-    recal( sampleID, markdup.out.bam_md, markdup.out.bai_md, fastaIndex.out.fasta, fastaIndex.out.fai, knownVariants )
-    bamIndex( recal.out.bam_recal )
-    haplotypecaller( sampleID, recal.out.bam_recal, bamIndex.out.bai_recal, fastaIndex.out.fasta, fastaIndex.out.fai, recal.out.dict, dbsnp )
-    genotype( sampleID, fastaIndex.out.fasta, fastaIndex.out.fai, recal.out.dict, dbsnp, haplotypecaller.out.gvcf )
+    main:
+        mapping( sampleID, fastqR1, fastqR2, ref )
+        markdup( sampleID, mapping.out.bam )
+        fastaIndex( fastaIn )
+        recal( sampleID, markdup.out.bam_md, markdup.out.bai_md, fastaIndex.out.fasta, fastaIndex.out.fai, knownVariants )
+        bamIndex( recal.out.bam_recal )
+        haplotypecaller( sampleID, recal.out.bam_recal, bamIndex.out.bai_recal, fastaIndex.out.fasta, fastaIndex.out.fai, recal.out.dict, dbsnp )
+        genotype( sampleID, fastaIndex.out.fasta, fastaIndex.out.fai, recal.out.dict, dbsnp, haplotypecaller.out.gvcf )
+    emit:
+        genotype.out.vcf
+        genotype.out.tbi
 }
 
 process mapping {
@@ -203,6 +208,7 @@ process haplotypecaller {
 process genotype {
     machineType "mem3_ssd1_v2_x8"
     container "quay.io/biocontainers/gatk4:4.2.0.0--0"
+    publishDir "${params.outDir}"
     input:
         val sampleID
         path fasta
